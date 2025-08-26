@@ -1,0 +1,88 @@
+Perth Now - Taboola Integration Instructions
+
+1. Place this code in the <head> section of the page (any page type). 
+This only has to be called on the first page loaded:
+<script type="text/javascript">
+    window._taboola = window._taboola || [];
+    !function (e, f, u, i) {
+        if (!document.getElementById(i)){
+            e.async = 1;
+            e.src = u;
+            e.id = i;
+            f.parentNode.insertBefore(e, f);
+        }
+    }(document.createElement('script'),document.getElementsByTagName('script')[0],'//cdn.taboola.com/libtrc/sevenwestmedia-perthnow/loader.js','tb_loader_script');
+    if(window.performance && typeof window.performance.mark == 'function')
+    {window.performance.mark('tbl_ic');}
+</script>
+
+
+
+
+On Article Pages (Taboola Below Article Split Feed)
+2. Place the container on the page where you want the Taboola Below Article Split Feed to appear.
+This container must be above the container of the unit that is to be included within the Feed as a “split” (i.e. Ripple)
+<div id="taboola-below-article-thumbnails"></div>
+
+
+3. Place this code inside the containers on every page that you would like Taboola units to render. Execute the following commands: 
+_taboola.push({article:'auto', url:' <pass-canonical-url-new-page> '}); // pass canonical url of page
+_taboola.push({mode: 'alternating-thumbnails-a', container: 'taboola-below-article-thumbnails', placement: 'Below Article Thumbnails', target_type: 'mix '});
+
+
+
+
+
+On Section Front Pages (Taboola Below Category Feed)
+2. Place the container on the page where you want the Taboola Below Category Feed to appear.
+<div id="taboola-below-category-thumbnails"></div>
+
+
+3. Place this code inside the containers on every page that you would like Taboola units to render. Execute the following commands: 
+_taboola.push({category:'auto', url:' <pass-canonical-url-new-page> '}); // pass canonical url of page
+_taboola.push({mode: 'alternating-thumbnails-a', container: 'taboola-category-article-thumbnails', placement: 'Below Category Thumbnails', target_type: 'mix '});
+
+
+
+
+
+
+On Homepage (Taboola Below Home Feed)
+2. Place the container on the page where you want the Taboola Below Home Feed to appear.
+<div id="taboola-below-home-thumbnails"></div>
+
+
+3. Place this code inside the containers on every page that you would like Taboola units to render. Execute the following commands: 
+_taboola.push({home:'auto', url:' <pass-canonical-url-new-page> '}); // pass canonical url of page
+_taboola.push({mode: 'alternating-thumbnails-a', container: 'taboola-home-article-thumbnails', placement: 'Below Home Thumbnails', target_type: 'mix '});
+
+
+
+
+
+On Every New Page Load
+Execute this command every time a new page is loaded dynamically, regardless of whether Taboola is needed on that page or not. Execute the commands in steps 2 and 3 (for the respective page type) after the new page load command if Taboola units should be rendered on the new page.
+This command does not need to be executed upon the initial page load.
+_taboola.push({notify:'newPageLoad'}); // ONLY push this command for new page views - don't push on the initial page loaded 
+
+
+
+On AMP Article Pages (Taboola Below Article Feed)
+In order to incorporate publisher units into the AMP Feed. It will have to be implemented within the HTML of the AMP page. 
+Please note that the Taboola loader codes (to be placed in <head> tag) are not needed on AMP.
+Place this code on the page where you would like the Taboola Below Article Feed (AMP) to appear:
+///Top snippet///
+<amp-embed width=100 height=100
+           type=taboola
+           layout=responsive
+           data-publisher='sevenwestmedia-perthnow'
+           data-mode='alternating-thumbnails-a'
+           data-placement='Below Article Thumbnails AMP'
+           data-target_type='mix'
+           data-article='auto'
+           data-url=''>
+</amp-embed>
+
+
+
+

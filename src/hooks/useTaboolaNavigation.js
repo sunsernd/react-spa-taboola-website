@@ -3,18 +3,18 @@ import { useLocation } from 'react-router-dom'
 
 /**
  * Custom hook to handle Taboola navigation for SPA
- * Calls the newPageLoad command when navigating between pages and on unmount
+ * Calls the newPageLoad command when LEAVING pages (not when arriving)
  */
 export function useTaboolaNavigation() {
   const location = useLocation()
   const isInitialLoad = useRef(true)
-  const previousPath = useRef(location.pathname)
+  const currentPath = useRef(location.pathname)
 
-  const triggerNewPageLoad = (reason = 'navigation') => {
+  const triggerNewPageLoad = (reason = 'page-leave', fromPath = '') => {
     if (typeof window !== 'undefined' && window._taboola) {
       try {
         window._taboola.push({ notify: 'newPageLoad' })
-        console.log(`Taboola newPageLoad triggered (${reason}):`, location.pathname)
+        console.log(`Taboola newPageLoad triggered (${reason}) - leaving:`, fromPath, 'going to:', location.pathname)
       } catch (error) {
         console.error('Error triggering Taboola newPageLoad:', error)
       }
@@ -22,50 +22,52 @@ export function useTaboolaNavigation() {
   }
 
   useEffect(() => {
-    // Skip the initial page load
+    const previousPath = currentPath.current
+    currentPath.current = location.pathname
+
+    // Skip the initial page load - no newPageLoad needed
     if (isInitialLoad.current) {
       isInitialLoad.current = false
-      previousPath.current = location.pathname
+      console.log('Initial page load, no newPageLoad triggered:', location.pathname)
       return
     }
 
-    // Only trigger if we've actually changed routes
-    if (previousPath.current !== location.pathname) {
-      triggerNewPageLoad('route-change')
-      previousPath.current = location.pathname
+    // When we reach here, we've navigated from previousPath to location.pathname
+    // Trigger newPageLoad for leaving the previous page
+    if (previousPath !== location.pathname) {
+      triggerNewPageLoad('route-change', previousPath)
     }
 
-    // Cleanup function - triggers when leaving the current page
+    // Cleanup function - triggers when this component/page is being unmounted
     return () => {
-      // Trigger newPageLoad when leaving the page/component unmounting
-      // Only if we're not on the initial load and the path is changing
-      if (!isInitialLoad.current && previousPath.current === location.pathname) {
-        triggerNewPageLoad('page-leave')
+      // This runs when leaving the current page
+      if (!isInitialLoad.current) {
+        triggerNewPageLoad('page-leave-cleanup', currentPath.current)
       }
     }
   }, [location.pathname])
 
-  // Additional effect to handle browser back/forward navigation
+  // Handle browser navigation (back/forward buttons)
   useEffect(() => {
-    const handlePopState = () => {
+    const handleBeforeUnload = () => {
       if (!isInitialLoad.current) {
-        triggerNewPageLoad('browser-navigation')
+        triggerNewPageLoad('browser-unload', currentPath.current)
       }
     }
 
-    window.addEventListener('popstate', handlePopState)
+    // Listen for page unload (browser close, refresh)
+    window.addEventListener('beforeunload', handleBeforeUnload)
     
     return () => {
-      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
     }
   }, [])
 
-  // Effect to handle component unmount
+  // Global cleanup when the entire component unmounts
   useEffect(() => {
     return () => {
-      // Trigger newPageLoad on component unmount (app closing/refresh)
       if (!isInitialLoad.current) {
-        triggerNewPageLoad('component-unmount')
+        triggerNewPageLoad('component-unmount', currentPath.current)
       }
     }
   }, [])
